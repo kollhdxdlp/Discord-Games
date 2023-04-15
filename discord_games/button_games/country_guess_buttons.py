@@ -155,12 +155,19 @@ class BetaCountryGuesser(CountryGuesser):
 
         self.embed_color = embed_color
         self.embed = self.get_embed()
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            user = ctx.author
+        else:
+            user = ctx.user
         self.embed.add_field(
             name="Guess Log", value="```diff\n\u200b\n```", inline=False
         )
 
-        self.view = CountryView(self, user=ctx.author, timeout=timeout)
-        self.message = await ctx.send(embed=self.embed, file=file, view=self.view)
+        self.view = CountryView(self, user=user, timeout=timeout)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=self.embed, file=file, view=self.view)
+        else:
+            self.message = await ctx.interaction.send_message(embed=self.embed, file=file, view=self.view)
 
         await self.view.wait()
         return self.message

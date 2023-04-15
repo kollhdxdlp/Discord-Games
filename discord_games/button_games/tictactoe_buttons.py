@@ -118,7 +118,10 @@ class BetaTictactoe(Tictactoe):
         self.win_button_style = win_button_style
 
         self.view = TTTView(self, timeout=timeout)
-        self.message = await ctx.send(embed=self.make_embed(), view=self.view)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=self.make_embed(), view=self.view)
+        else:
+            self.message = await ctx.interaction.send_message(embed=self.make_embed(), view=self.view)
 
         await double_wait(
             wait_for_delete(ctx, self.message, user=(self.cross, self.circle)),

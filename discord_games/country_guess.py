@@ -132,11 +132,11 @@ class CountryGuesser:
             if length:
                 return (
                     m.channel == ctx.channel
-                    and m.author == ctx.author
+                    and m.author == self.user
                     and len(m.content) == length
                 )
             else:
-                return m.channel == ctx.channel and m.author == ctx.author
+                return m.channel == ctx.channel and m.author == self.user
 
         message: discord.Message = await ctx.bot.wait_for(
             "message", timeout=self.timeout, check=check
@@ -183,7 +183,13 @@ class CountryGuesser:
         self.embed = self.get_embed()
         self.embed.set_footer(text="send your guess into the chat now!")
 
-        self.message = await ctx.send(embed=self.embed, file=file)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.user = ctx.author
+            self.message = await ctx.send(embed=self.embed, file=file)
+        else:
+            self.user = ctx.user
+            self.message = await ctx.interaction.send_message(embed=self.embed, file=file)
+
 
         self.accepted_length = len(self.country) if ignore_diff_len else None
 

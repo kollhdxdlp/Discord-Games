@@ -361,8 +361,11 @@ class BattleShip:
             returns both player's messages respectively
         """
 
-        await ctx.send("**Game Started!**\nI've setup the boards in your dms!")
-
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            await ctx.send("**Game Started!**\nI've setup the boards in your dms!")
+        else:
+            await ctx.interaction.send_message("**Game Started!**\nI've setup the boards in your dms!")
+        
         if not self.random:
             await asyncio.gather(
                 self.get_ship_inputs(ctx, self.player1),
@@ -388,9 +391,13 @@ class BattleShip:
                     "message", check=check, timeout=self.timeout
                 )
             except asyncio.TimeoutError:
-                await ctx.send(
-                    f"The timeout of {timeout} seconds, has been reached. Aborting..."
-                )
+                if isinstance(ctx, discord.ext.commands.context.Context):
+                    await ctx.send(
+                        f"The timeout of {timeout} seconds, has been reached. Aborting...")
+                else:
+                    await ctx.interaction.send_message(
+                        f"The timeout of {timeout} seconds, has been reached. Aborting...")
+
                 break
 
             raw, coords = self.get_coords(message.content)

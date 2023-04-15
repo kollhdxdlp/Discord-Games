@@ -275,10 +275,16 @@ class Boggle:
 
         self.button_style = button_style
         self.selected_style = selected_style
-        self.player = ctx.author
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.author
+        else:
+            self.player = ctx.user
 
         self.view = BoggleView(self, timeout=timeout)
-        self.message = await ctx.send(view=self.view, embed=self.get_embed())
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(view=self.view, embed=self.get_embed())
+        else:
+            self.message = await ctx.interaction.send_message(view=self.view, embed=self.get_embed())
 
         await self.view.wait()
         return self.message

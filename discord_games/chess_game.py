@@ -99,7 +99,10 @@ class Chess:
         self.embed_color = embed_color
 
         embed = await self.make_embed()
-        self.message = await ctx.send(embed=embed, **kwargs)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=embed, **kwargs)
+        else:
+            self.message = await ctx.interaction.send_message(embed=embed, **kwargs)
 
         while not ctx.bot.is_closed():
 
@@ -132,6 +135,6 @@ class Chess:
 
         embed = await self.fetch_results()
         await self.message.edit(embed=embed)
-        await ctx.send("~ Game Over ~")
+        await ctx.channel.send("~ Game Over ~")
 
         return self.message

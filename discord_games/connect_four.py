@@ -165,7 +165,10 @@ class ConnectFour:
         self.embed_color = embed_color
 
         embed = self.make_embed(status=False)
-        self.message = await ctx.send(self.board_string(), embed=embed, **kwargs)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(self.board_string(), embed=embed, **kwargs)
+        else:
+            self.message = await ctx.interaction.send_message(self.board_string(), embed=embed, **kwargs)
 
         for button in self._controls:
             await self.message.add_reaction(button)

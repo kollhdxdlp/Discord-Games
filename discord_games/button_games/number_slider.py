@@ -168,7 +168,11 @@ class NumberSlider:
         discord.Message
             returns the game message
         """
-        self.player = ctx.author
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.author
+        else:
+            self.player = ctx.user
+
         self.wrong_style = wrong_style
         self.correct_style = correct_style
 
@@ -187,7 +191,10 @@ class NumberSlider:
         )
         self.embed.add_field(name="\u200b", value="Moves: `0`")
 
-        self.message = await ctx.send(embed=self.embed, view=self.view)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=self.embed, view=self.view)
+        else:
+            self.message = await ctx.interaction.send_message(embed=self.embed, view=self.view)
 
         await double_wait(
             wait_for_delete(ctx, self.message),

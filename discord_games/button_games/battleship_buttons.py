@@ -456,8 +456,11 @@ class BetaBattleShip(BattleShip):
         self.max_log_size = max_log_size
         self.timeout = timeout
         self.embed_color = embed_color
-
-        await ctx.send("**Game Started!**\nI've setup the boards in your dms!")
+        
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            await ctx.send("**Game Started!**\nI've setup the boards in your dms!")
+        else:
+            await ctx.interaction.send_message("**Game Started!**\nI've setup the boards in your dms!")
 
         if not self.random:
             await asyncio.gather(

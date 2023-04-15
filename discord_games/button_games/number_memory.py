@@ -206,7 +206,11 @@ class NumberMemory:
             button_style=button_style,
             timeout=timeout,
         )
-        self.message = await ctx.send(file=self.file, embed=self.embed, view=self.view)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(file=self.file, embed=self.embed, view=self.view)
+        else:
+            self.message = await ctx.interaction.send_message(file=self.file, embed=self.embed, view=self.view)
+
 
         await asyncio.sleep(self.pause_time)
         await self.update_embed(hide=True)

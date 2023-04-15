@@ -141,14 +141,16 @@ class LightsOut:
             the color of the game embed, by default DEFAULT_COLOR
         timeout : Optional[float], optional
             the timeout for the view, by default None
-
         Returns
         -------
         discord.Message
             returns the game message
         """
         self.button_style = button_style
-        self.player = ctx.author
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.author
+        else:
+            self.player = ctx.user
 
         self.tiles = random.choices((None, BULB), k=self.count**2)
         self.tiles = chunk(self.tiles, count=self.count)
@@ -159,7 +161,10 @@ class LightsOut:
         )
         self.embed.add_field(name="\u200b", value="Moves: `0`")
 
-        self.message = await ctx.send(embed=self.embed, view=self.view)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=self.embed, view=self.view)
+        else:
+            self.message = await ctx.interaction.send_message(embed=self.embed, view=self.view)
 
         await double_wait(
             wait_for_delete(ctx, self.message),

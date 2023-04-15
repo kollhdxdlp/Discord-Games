@@ -172,7 +172,10 @@ class VerbalMemory:
             button_style=button_style,
             timeout=timeout,
         )
-        self.message = await ctx.send(embed=self.embed, view=self.view)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=self.embed, view=self.view)
+        else:
+            self.message = await ctx.interaction.send_message(embed=self.embed, view=self.view)
 
         await self.view.wait()
         return self.message

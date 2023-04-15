@@ -114,6 +114,7 @@ class Akinator:
         aki_theme: str = "Characters",
         aki_language: str = "English",
         child_mode: bool = True,
+        slashcommand: bool = False,
     ) -> Optional[discord.Message]:
         """
         starts the akinator game
@@ -136,6 +137,8 @@ class Akinator:
             indicates whether to add a stop button to stop the game, by default False
         child_mode : bool, optional
             indicates to filter out NSFW content or not, by default True
+        slashcommand : bool, optional
+            specifies whether or not the command executing this is a slash command
 
         Returns
         -------
@@ -146,7 +149,13 @@ class Akinator:
         self.back_button = back_button
         self.delete_button = delete_button
         self.embed_color = embed_color
-        self.player = ctx.author
+        self.slashcommand = slashcommand
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.user
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.author
+        else:
+            self.player = ctx.user
         self.win_at = win_at
 
         if self.back_button:
@@ -161,7 +170,10 @@ class Akinator:
         await self.aki.start_game()
 
         embed = self.build_embed()
-        self.message = await ctx.send(embed=embed)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=embed)
+        else:
+            self.message = await ctx.interaction.send_message(embed=embed)
 
         for button in Options:
             await self.message.add_reaction(button.value)
@@ -176,7 +188,7 @@ class Akinator:
 
             def check(reaction: discord.Reaction, user: discord.User) -> bool:
                 emoji = str(reaction.emoji)
-                if reaction.message == self.message and user == ctx.author:
+                if reaction.message == self.message and user == self.player:
                     try:
                         return bool(Options(emoji))
                     except ValueError:
@@ -198,7 +210,7 @@ class Akinator:
             emoji = str(reaction.emoji)
 
             if emoji == STOP:
-                await ctx.send("**Session ended**")
+                await ctx.channel.send("**Session ended**")
                 return await self.message.delete()
 
             if emoji == BACK:

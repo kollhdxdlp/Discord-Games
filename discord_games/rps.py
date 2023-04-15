@@ -29,7 +29,7 @@ class RockPaperScissors:
         def check(reaction: discord.Reaction, user: discord.User) -> bool:
             return (
                 str(reaction.emoji) in self.OPTIONS
-                and user == ctx.author
+                and user == self.user
                 and reaction.message == self.message
             )
 
@@ -67,7 +67,13 @@ class RockPaperScissors:
             description="React to play!",
             color=embed_color,
         )
-        self.message = await ctx.send(embed=embed)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.user = ctx.author
+            self.message = await ctx.send(embed=embed)
+        else:
+            self.user = ctx.user
+            self.message = await ctx.interaction.send_message(embed=embed)
+
 
         for option in self.OPTIONS:
             await self.message.add_reaction(option)

@@ -126,7 +126,10 @@ class BetaAkinator(Akinator):
         self.delete_button = delete_button
         self.embed_color = embed_color
 
-        self.player = ctx.author
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.author
+        else:
+            self.player = ctx.user
         self.win_at = win_at
         self.view = AkiView(self, timeout=timeout)
 
@@ -136,7 +139,10 @@ class BetaAkinator(Akinator):
         await self.aki.start_game()
 
         embed = self.build_embed(instructions=False)
-        self.message = await ctx.send(embed=embed, view=self.view)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=embed, view=self.view)
+        else:
+            self.message = await ctx.response.send_message(embed = embed, view = self.view)
 
         await self.view.wait()
         return self.message

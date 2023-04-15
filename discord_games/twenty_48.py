@@ -294,17 +294,27 @@ class Twenty48:
         """
         self.win_at = win_at
         self.embed_color = embed_color
-        self.player = ctx.author
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.author
+        else:
+            self.player = ctx.user
 
         self.board[random.randrange(4)][random.randrange(4)] = 2
         self.board[random.randrange(4)][random.randrange(4)] = 2
+
 
         if self._render_image:
             image = await self.render_image()
-            self.message = await ctx.send(file=image, **kwargs)
+            if isinstance(ctx, discord.ext.commands.context.Context):
+                self.message = await ctx.send(file=image, **kwargs)
+            else:
+                self.message = await ctx.interaction.send_message(file=image, **kwargs)
         else:
             board_string = self.number_to_emoji()
-            self.message = await ctx.send(board_string, **kwargs)
+            if isinstance(ctx, discord.ext.commands.context.Context):
+                self.message = await ctx.send(board_string, **kwargs)
+            else:
+                self.message = await ctx.interaction.send_message(board_string, **kwargs)
 
         if delete_button:
             self._controls.append("⏹️")

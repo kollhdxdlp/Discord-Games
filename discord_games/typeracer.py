@@ -182,6 +182,11 @@ class TypeRacer:
         self.embed_color = embed_color
         parent = pathlib.Path(__file__).parent
 
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.user = ctx.author
+        else:
+            self.user = ctx.user
+
         if not words_mode:
             async with aiohttp.ClientSession() as session:
                 async with session.get(self.SENTENCE_URL) as r:
@@ -214,13 +219,16 @@ class TypeRacer:
 
         if show_author:
             if discord.version_info.major >= 2:
-                av = ctx.author.avatar.url
+                av = self.user.avatar.url
             else:
-                av = ctx.author.avatar_url
-            embed.set_author(name=ctx.author.name, icon_url=av)
+                av = self.user.avatar_url
+            embed.set_author(name=self.user.name, icon_url=av)
 
         self.embed = embed
-        self.message = await ctx.send(embed=embed, file=discord.File(buffer, "tr.png"))
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=embed, file=discord.File(buffer, "tr.png"))
+        else:
+            self.message = await ctx.interaction.send_message(embed=embed, file=discord.File(buffer, "tr.png"))
 
         await self.wait_for_tr_response(
             ctx, text, timeout=timeout, min_accuracy=min_accuracy

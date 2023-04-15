@@ -106,7 +106,10 @@ class BetaReactionGame:
         self.finished_event = asyncio.Event()
 
         self.author_only = author_only
-        self.author = ctx.author
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.author = ctx.author
+        else:
+            self.author = ctx.user
 
         self.embed = discord.Embed(
             title="Reaction Game",
@@ -114,7 +117,11 @@ class BetaReactionGame:
             color=embed_color,
         )
         self.view = ReactionView(self, button_style=start_button_style, timeout=timeout)
-        self.message = await ctx.send(embed=self.embed, view=self.view)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=self.embed, view=self.view)
+        else:
+            self.message = await ctx.interaction.send_message(embed=self.embed, view=self.view)
+
 
         pause = random.uniform(*pause_range)
         await asyncio.sleep(pause)

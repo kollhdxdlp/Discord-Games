@@ -134,7 +134,11 @@ class BetaChess(Chess):
         embed = await self.make_embed()
         self.view = ChessView(self, timeout=timeout)
 
-        self.message = await ctx.send(embed=embed, view=self.view)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=embed, view=self.view)
+        else:
+            self.message = await ctx.interaction.send_message(embed=embed, view=self.view)
+            
 
         await self.view.wait()
         return self.message

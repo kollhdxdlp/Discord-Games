@@ -179,10 +179,14 @@ class ChimpTest:
             button_style=button_style,
             timeout=timeout,
         )
-        self.message = await ctx.send(
-            content="Click the buttons in order!",
-            view=self.view,
-        )
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(
+                content="Click the buttons in order!",
+                view=self.view,)
+        else:
+            self.message = await ctx.interaction.send_message(
+                content="Click the buttons in order!",
+                view=self.view,)
 
         if self.initial_sleep is not None:
             await asyncio.sleep(self.initial_sleep)

@@ -134,18 +134,27 @@ class Wordle:
 
         buf = await self.render_image()
 
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.user = ctx.author
+        else:
+            self.user = ctx.user
+
+
         embed = discord.Embed(title="Wordle!", color=self.embed_color)
         embed.set_image(url="attachment://wordle.png")
         embed.set_footer(text='Say "stop" to cancel the game!')
 
-        self.message = await ctx.send(embed=embed, file=discord.File(buf, "wordle.png"))
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=embed, file=discord.File(buf, "wordle.png"))
+        else:
+            self.message = await ctx.interaction.send_message(embed=embed, file=discord.File(buf, "wordle.png"))
 
         while not ctx.bot.is_closed():
 
             def check(m: discord.Message) -> bool:
                 return (
                     (len(m.content) == 5 or m.content.lower() == "stop")
-                    and m.author == ctx.author
+                    and m.author == self.user
                     and m.channel == ctx.channel
                 )
 
@@ -159,11 +168,11 @@ class Wordle:
             content = guess.content.lower()
 
             if content == "stop":
-                await ctx.send(f"Game Over! cancelled, the word was: **{self.word}**")
+                await ctx.channel.send(f"Game Over! cancelled, the word was: **{self.word}**")
                 break
 
             if content not in self._valid_words:
-                await ctx.send("That is not a valid word!")
+                await ctx.channel.send("That is not a valid word!")
             else:
                 won = self.parse_guess(content)
                 buf = await self.render_image()
@@ -173,15 +182,15 @@ class Wordle:
                 embed = discord.Embed(title="Wordle!", color=self.embed_color)
                 embed.set_image(url="attachment://wordle.png")
 
-                self.message = await ctx.send(
+                self.message = await ctx.channel.send(
                     embed=embed, file=discord.File(buf, "wordle.png")
                 )
 
                 if won:
-                    await ctx.send("Game Over! You won!")
+                    await ctx.channel.send("Game Over! You won!")
                     break
                 elif len(self.guesses) >= 6:
-                    await ctx.send(
+                    await ctx.channel.send(
                         f"Game Over! You lose, the word was: **{self.word}**"
                     )
                     break

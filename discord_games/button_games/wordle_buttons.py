@@ -123,17 +123,26 @@ class BetaWordle(Wordle):
             returns the game message
         """
         self.embed_color = embed_color
-        self.player = ctx.author
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.author
+        else:
+            self.player = ctx.user
 
         buf = await self.render_image()
         embed = discord.Embed(title="Wordle!", color=self.embed_color)
         embed.set_image(url="attachment://wordle.png")
 
         self.view = WordleView(self, timeout=timeout)
-        self.message = await ctx.send(
-            embed=embed,
-            file=discord.File(buf, "wordle.png"),
-            view=self.view,
-        )
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(
+                embed=embed,
+                file=discord.File(buf, "wordle.png"),
+                view=self.view,)
+        else:
+            self.message = await ctx.interaction.send_message(
+                embed=embed,
+                file=discord.File(buf, "wordle.png"),
+                view=self.view,)
+
         await self.view.wait()
         return self.message

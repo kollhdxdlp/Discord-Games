@@ -71,7 +71,11 @@ async def wait_for_delete(
 ) -> bool:
 
     if not user:
-        user = ctx.author
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            user = ctx.author
+        else:
+            user = ctx.user
+
     try:
         await message.add_reaction(emoji)
     except discord.DiscordException:

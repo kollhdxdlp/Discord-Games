@@ -10,18 +10,91 @@ from ..twenty_48 import Twenty48
 from ..utils import DiscordColor, DEFAULT_COLOR, BaseView
 
 
-class Twenty48_Button(discord.ui.Button["BaseView"]):
-    def __init__(self, game: BetaTwenty48, emoji: str) -> None:
-        self.game = game
+class BetaTwenty48(Twenty48):
+    view: discord.ui.View
+    """
+    Twenty48(buttons) game
+    """
 
-        style = (
-            discord.ButtonStyle.red if emoji == "⏹️" else discord.ButtonStyle.blurple
-        )
+    async def start(
+        self,
+        ctx: commands.Context[commands.Bot],
+        *,
+        win_at: Literal[2048, 4096, 8192] = 8192,
+        timeout: Optional[float] = None,
+        delete_button: bool = False,
+        embed_color: DiscordColor = DEFAULT_COLOR,
+        **kwargs,
+    ) -> discord.Message:
+        """
+        starts the 2048(buttons) game
 
-        super().__init__(
-            style=style, emoji=discord.PartialEmoji(name=emoji), label="\u200b"
-        )
+        Parameters
+        ----------
+        ctx : commands.Context
+            the context of the invokation command
+        win_at : Literal[2048, 4096, 8192], optional
+            the tile to stop the game / win at, by default 8192
+        timeout : Optional[float], optional
+            the timeout for the view, by default None
+        delete_button : bool, optional
+            specifies whether or not to add a stop button, by default False
+        embed_color : DiscordColor, optional
+            the color of the game embed, by default DEFAULT_COLOR
 
+        Returns
+        -------
+        discord.Message
+            returns the game message
+        """
+        self.win_at = win_at
+        self.embed_color = embed_color
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.author
+        else:
+            self.player = ctx.user
+        self.view = BaseView(timeout=timeout)
+
+        self.board[random.randrange(4)][random.randrange(4)] = 2
+        self.board[random.randrange(4)][random.randrange(4)] = 2
+
+        #not using self._controls because of the order
+        controls = ["", "⬆", "","⬅","⬇","➡"]
+
+        for buttonID in range(6):
+            if buttonID == 0 and delete_button:
+                emoji = "⏹️"
+                style = discord.ButtonStyle.red
+                disabled = False
+            elif buttonID in [0, 2]:
+                emoji = None
+                style = discord.ButtonStyle.gray
+                disabled = True
+            else:
+                emoji = controls[buttonID]
+                style = discord.ButtonStyle.blurple
+                disabled = False
+
+            button = discord.ui.Button(label = "\u200b", emoji=emoji, style=style, disabled=disabled)
+            button.callback = self.callback
+            self.view.add_item(button)
+
+        if self._render_image:
+            image = await self.render_image()
+            if isinstance(ctx, discord.ext.commands.context.Context):
+                self.message = await ctx.send(file=image, view=self.view, **kwargs)
+            else:
+                self.message = await ctx.interaction.send_message(file=image, view=self.view, **kwargs)
+        else:
+            board_string = self.number_to_emoji()
+            if isinstance(ctx, discord.ext.commands.context.Context):
+                self.message = await ctx.send(content=board_string, view=self.view, **kwargs)
+            else:
+                self.message = await ctx.interaction.send_message(content=board_string, view=self.view, **kwargs)
+
+        await self.view.wait()
+        return self.message
+    
     async def callback(self, interaction: discord.Interaction) -> None:
 
         if interaction.user != self.game.player:
@@ -70,68 +143,3 @@ class Twenty48_Button(discord.ui.Button["BaseView"]):
             await interaction.response.edit_message(
                 content=board_string, embed=self.game.embed
             )
-
-
-class BetaTwenty48(Twenty48):
-    view: discord.ui.View
-    """
-    Twenty48(buttons) game
-    """
-
-    async def start(
-        self,
-        ctx: commands.Context[commands.Bot],
-        *,
-        win_at: Literal[2048, 4096, 8192] = 8192,
-        timeout: Optional[float] = None,
-        delete_button: bool = False,
-        embed_color: DiscordColor = DEFAULT_COLOR,
-        **kwargs,
-    ) -> discord.Message:
-        """
-        starts the 2048(buttons) game
-
-        Parameters
-        ----------
-        ctx : commands.Context
-            the context of the invokation command
-        win_at : Literal[2048, 4096, 8192], optional
-            the tile to stop the game / win at, by default 8192
-        timeout : Optional[float], optional
-            the timeout for the view, by default None
-        delete_button : bool, optional
-            specifies whether or not to add a stop button, by default False
-        embed_color : DiscordColor, optional
-            the color of the game embed, by default DEFAULT_COLOR
-
-        Returns
-        -------
-        discord.Message
-            returns the game message
-        """
-        self.win_at = win_at
-        self.embed_color = embed_color
-
-        self.player = ctx.author
-        self.view = BaseView(timeout=timeout)
-
-        self.board[random.randrange(4)][random.randrange(4)] = 2
-        self.board[random.randrange(4)][random.randrange(4)] = 2
-
-        if delete_button:
-            self._controls.append("⏹️")
-
-        for button in self._controls:
-            self.view.add_item(Twenty48_Button(self, button))
-
-        if self._render_image:
-            image = await self.render_image()
-            self.message = await ctx.send(file=image, view=self.view, **kwargs)
-        else:
-            board_string = self.number_to_emoji()
-            self.message = await ctx.send(
-                content=board_string, view=self.view, **kwargs
-            )
-
-        await self.view.wait()
-        return self.message

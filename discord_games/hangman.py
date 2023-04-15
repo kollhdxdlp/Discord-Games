@@ -226,11 +226,18 @@ class Hangman:
         discord.Message
             returns the game message
         """
-        self.player = ctx.author
         self.embed_color = embed_color
         embed = self.initialize_embed()
+        
+        
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.author
+            self.message = await ctx.send(embed=embed, **kwargs)
+        else:
+            self.player = ctx.user
+            self.message = await ctx.interaction.send_message(embed=embed, **kwargs)
 
-        self.message = await ctx.send(embed=embed, **kwargs)
+
 
         while not ctx.bot.is_closed():
 

@@ -152,7 +152,11 @@ class BetaRockPaperScissors(RockPaperScissors):
         discord.Message
             returns the game mesage
         """
-        self.player1 = ctx.author
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player1 = ctx.author
+        else:
+            self.player1 = ctx.user
+
 
         self.embed = discord.Embed(
             title="Rock Paper Scissors",
@@ -161,7 +165,10 @@ class BetaRockPaperScissors(RockPaperScissors):
         )
 
         self.view = RPSView(self, button_style=button_style, timeout=timeout)
-        self.message = await ctx.send(embed=self.embed, view=self.view)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=self.embed, view=self.view)
+        else:
+            self.message = await ctx.interaction.send_message(embed=self.embed, view=self.view)
 
         await self.view.wait()
         return self.message

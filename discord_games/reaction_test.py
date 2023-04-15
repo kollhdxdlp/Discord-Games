@@ -64,7 +64,10 @@ class ReactionGame:
             color=embed_color,
         )
 
-        self.message = await ctx.send(embed=embed)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=embed)
+        else:
+            self.message = await ctx.interaction.send_message(embed=embed)
         await self.message.add_reaction(self.emoji)
 
         pause = random.uniform(1.0, 5.0)

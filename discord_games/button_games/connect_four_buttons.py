@@ -103,11 +103,16 @@ class BetaConnectFour(ConnectFour):
         self.view = ConnectFourView(self, timeout=timeout)
 
         embed = self.make_embed(status=False)
-        self.message = await ctx.send(
-            content=self.board_string(),
-            view=self.view,
-            embed=embed,
-        )
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(
+                content=self.board_string(),
+                view=self.view,
+                embed=embed,)
+        else:
+            self.message = await ctx.interaction.send_message(
+                content=self.board_string(),
+                view=self.view,
+                embed=embed,)
 
         await self.view.wait()
         return self.message

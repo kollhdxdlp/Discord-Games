@@ -111,12 +111,18 @@ class BetaHangman(Hangman):
         discord.Message
             returns the game message
         """
-        self.player = ctx.author
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.player = ctx.author
+        else:
+            self.player = ctx.user
         self.embed_color = embed_color
 
         embed = self.initialize_embed()
         self.view = HangmanView(self, timeout=timeout)
-        self.message = await ctx.send(embed=embed, view=self.view, **kwargs)
+        if isinstance(ctx, discord.ext.commands.context.Context):
+            self.message = await ctx.send(embed=embed, view=self.view, **kwargs)
+        else:
+            self.message = await ctx.interaction.send_message(embed=embed, view=self.view, **kwargs)
 
         await self.view.wait()
         return self.message
